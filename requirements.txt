@@ -1,0 +1,1 @@
+# Dependências externas serão adicionadas conforme o projeto evoluir.

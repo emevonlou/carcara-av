@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Ferramentas e editores
+.vscode/
+.idea/
+
+# Testes e cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build e distribuição
+build/
+dist/
+*.egg-info/
+
+# Logs e temporários
+*.log
+*.tmp
+
+# Bancos locais
+*.sqlite3
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
