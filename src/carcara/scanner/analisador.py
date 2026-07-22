@@ -2,9 +2,9 @@
 Coleta informações básicas de arquivos para análise.
 """
 
-from hashlib import sha256
 from pathlib import Path
 
+from carcara.hashes import calcular_sha256
 from carcara.modelos import Arquivo
 
 
@@ -25,8 +25,6 @@ class AnalisadorDeArquivo:
     - hash SHA-256.
     """
 
-    TAMANHO_BLOCO = 64 * 1024
-
     def analisar(self, caminho: str | Path) -> Arquivo:
         caminho_arquivo = Path(caminho).expanduser().resolve()
 
@@ -37,7 +35,7 @@ class AnalisadorDeArquivo:
             nome=caminho_arquivo.name,
             extensao=caminho_arquivo.suffix.lower(),
             tamanho=caminho_arquivo.stat().st_size,
-            sha256=self._calcular_sha256(caminho_arquivo),
+            sha256=calcular_sha256(caminho_arquivo),
         )
 
     def _validar(self, caminho: Path) -> None:
@@ -51,20 +49,3 @@ class AnalisadorDeArquivo:
                 f"O caminho informado não representa um arquivo: {caminho}"
             )
 
-    def _calcular_sha256(self, caminho: Path) -> str:
-        hash_arquivo = sha256()
-
-        try:
-            with caminho.open("rb") as arquivo:
-                while bloco := arquivo.read(self.TAMANHO_BLOCO):
-                    hash_arquivo.update(bloco)
-        except PermissionError as erro:
-            raise ErroDeAnalise(
-                f"Permissão negada para ler o arquivo: {caminho}"
-            ) from erro
-        except OSError as erro:
-            raise ErroDeAnalise(
-                f"Não foi possível ler o arquivo: {caminho}"
-            ) from erro
-
-        return hash_arquivo.hexdigest()
