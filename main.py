@@ -35,6 +35,7 @@ def main() -> None:
     print(f"Tamanho em KB: {arquivo.tamanho_kb:.2f}")
     print(f"Executável: {'sim' if arquivo.executavel else 'não'}")
     print(f"SHA-256: {arquivo.sha256}")
+    print(f"Tipo real: {arquivo.tipo_real}")
 
 
 if __name__ == "__main__":

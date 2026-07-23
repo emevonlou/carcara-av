@@ -5,6 +5,7 @@ Coleta informações básicas de arquivos para análise.
 from pathlib import Path
 
 from carcara.hashes import calcular_sha256
+from carcara.identificacao import IdentificadorDeArquivo
 from carcara.modelos import Arquivo
 
 
@@ -22,8 +23,12 @@ class AnalisadorDeArquivo:
     - nome;
     - extensão;
     - tamanho;
-    - hash SHA-256.
+    - hash SHA-256;
+    - tipo real do arquivo.
     """
+
+    def __init__(self) -> None:
+        self.identificador = IdentificadorDeArquivo()
 
     def analisar(self, caminho: str | Path) -> Arquivo:
         caminho_arquivo = Path(caminho).expanduser().resolve()
@@ -36,6 +41,7 @@ class AnalisadorDeArquivo:
             extensao=caminho_arquivo.suffix.lower(),
             tamanho=caminho_arquivo.stat().st_size,
             sha256=calcular_sha256(caminho_arquivo),
+            tipo_real=self.identificador.identificar(caminho_arquivo),
         )
 
     def _validar(self, caminho: Path) -> None:
@@ -48,4 +54,3 @@ class AnalisadorDeArquivo:
             raise ErroDeAnalise(
                 f"O caminho informado não representa um arquivo: {caminho}"
             )
-
