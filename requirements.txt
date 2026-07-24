@@ -1,1 +1,2 @@
 # Dependências externas serão adicionadas conforme o projeto evoluir.
+PySide6>=6.8,<7

@@ -1,0 +1,130 @@
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="256"
+    height="256"
+    viewBox="0 0 256 256"
+>
+    <defs>
+        <linearGradient id="ouro" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#E2BD67"/>
+            <stop offset="100%" stop-color="#A87525"/>
+        </linearGradient>
+
+        <radialGradient id="olho" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#FFF4C9"/>
+            <stop offset="55%" stop-color="#D4A64A"/>
+            <stop offset="100%" stop-color="#745016"/>
+        </radialGradient>
+    </defs>
+
+    <!-- Contorno principal: cabeça e escudo -->
+    <path
+        d="
+            M128 18
+            C167 29 202 50 224 80
+            C215 145 185 202 128 238
+            C71 202 41 145 32 80
+            C54 50 89 29 128 18
+            Z
+        "
+        fill="#171B1E"
+        stroke="url(#ouro)"
+        stroke-width="8"
+        stroke-linejoin="round"
+    />
+
+    <!-- Asa esquerda -->
+    <path
+        d="
+            M116 66
+            C88 69 64 84 48 105
+            C66 106 80 110 94 119
+            C76 121 63 128 53 140
+            C79 140 99 149 116 165
+            Z
+        "
+        fill="none"
+        stroke="#C99B3D"
+        stroke-width="8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    />
+
+    <!-- Asa direita -->
+    <path
+        d="
+            M140 66
+            C168 69 192 84 208 105
+            C190 106 176 110 162 119
+            C180 121 193 128 203 140
+            C177 140 157 149 140 165
+            Z
+        "
+        fill="none"
+        stroke="#C99B3D"
+        stroke-width="8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+    />
+
+    <!-- Olho central -->
+    <path
+        d="
+            M78 126
+            C93 101 108 90 128 90
+            C148 90 163 101 178 126
+            C163 151 148 162 128 162
+            C108 162 93 151 78 126
+            Z
+        "
+        fill="#111416"
+        stroke="#E0B45B"
+        stroke-width="6"
+    />
+
+    <circle
+        cx="128"
+        cy="126"
+        r="22"
+        fill="url(#olho)"
+    />
+
+    <circle
+        cx="128"
+        cy="126"
+        r="10"
+        fill="#111416"
+    />
+
+    <circle
+        cx="121"
+        cy="118"
+        r="4"
+        fill="#FFF9E8"
+        opacity="0.9"
+    />
+
+    <!-- Bico -->
+    <path
+        d="
+            M128 160
+            L151 178
+            L128 190
+            L105 178
+            Z
+        "
+        fill="#C99B3D"
+    />
+
+    <!-- Pena inferior -->
+    <path
+        d="
+            M128 190
+            L128 218
+        "
+        fill="none"
+        stroke="#C99B3D"
+        stroke-width="7"
+        stroke-linecap="round"
+    />
+</svg>
