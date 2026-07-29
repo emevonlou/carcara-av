@@ -2,6 +2,9 @@
 Coleta informações básicas de arquivos para análise.
 """
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from pathlib import Path
 
 from carcara.hashes import calcular_sha256
@@ -30,7 +33,11 @@ class AnalisadorDeArquivo:
     def __init__(self) -> None:
         self.identificador = IdentificadorDeArquivo()
 
-    def analisar(self, caminho: str | Path) -> Arquivo:
+    def analisar(
+        self,
+        caminho: str | Path,
+        progresso: Callable[[int], None] | None = None,
+    ) -> Arquivo:
         caminho_arquivo = Path(caminho).expanduser().resolve()
 
         self._validar(caminho_arquivo)
@@ -40,8 +47,13 @@ class AnalisadorDeArquivo:
             nome=caminho_arquivo.name,
             extensao=caminho_arquivo.suffix.lower(),
             tamanho=caminho_arquivo.stat().st_size,
-            sha256=calcular_sha256(caminho_arquivo),
-            tipo_real=self.identificador.identificar(caminho_arquivo),
+            sha256=calcular_sha256(
+                caminho_arquivo,
+                progresso=progresso,
+            ),
+            tipo_real=self.identificador.identificar(
+                caminho_arquivo
+            ),
         )
 
     def _validar(self, caminho: Path) -> None:
@@ -52,5 +64,6 @@ class AnalisadorDeArquivo:
 
         if not caminho.is_file():
             raise ErroDeAnalise(
-                f"O caminho informado não representa um arquivo: {caminho}"
+                "O caminho informado não representa um arquivo: "
+                f"{caminho}"
             )

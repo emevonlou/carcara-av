@@ -17,7 +17,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from carcara.core.hashing import calcular_sha256
+from carcara.orquestracao import MotorDeAnalise, ResultadoAnalise
+from carcara.scanner import ErroDeAnalise
 from carcara.core.messages import (
     mensagem_analisando,
     mensagem_concluida,
@@ -41,10 +42,9 @@ def formatar_tamanho(tamanho: int) -> str:
 
     return f"{tamanho} B"
 
-
-class TrabalhadorHash(QThread):
+class TrabalhadorAnalise(QThread):
     progresso = Signal(int)
-    concluido = Signal(str)
+    concluido = Signal(object)
     falhou = Signal(str)
 
     def __init__(self, caminho: Path) -> None:
@@ -53,25 +53,29 @@ class TrabalhadorHash(QThread):
 
     def run(self) -> None:
         try:
-            hash_sha256 = calcular_sha256(
+            motor = MotorDeAnalise()
+
+            resultado = motor.analisar(
                 self.caminho,
                 progresso=self.progresso.emit,
             )
-            self.concluido.emit(hash_sha256)
-        except (OSError, ValueError) as erro:
+
+            self.concluido.emit(resultado)
+
+        except (ErroDeAnalise, OSError, ValueError) as erro:
             self.falhou.emit(str(erro))
+
         except Exception as erro:
             self.falhou.emit(
                 f"Falha inesperada durante a análise: {erro}"
             )
-
 
 class JanelaPrincipal(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
 
         self.caminho_selecionado: Path | None = None
-        self.trabalhador: TrabalhadorHash | None = None
+        self.trabalhador: TrabalhadorAnalise | None = None
 
         self.setWindowTitle("CarcaráAV")
         self.setMinimumSize(880, 650)
@@ -190,6 +194,12 @@ class JanelaPrincipal(QMainWindow):
         layout.addLayout(self._criar_linha_detalhe("Caminho", "caminho"))
         layout.addLayout(self._criar_linha_detalhe("Tamanho", "tamanho"))
         layout.addLayout(self._criar_linha_detalhe("SHA-256", "sha256"))
+        layout.addLayout(
+            self._criar_linha_detalhe("Tipo real", "tipo_real")
+        )
+        layout.addLayout(
+            self._criar_linha_detalhe("Evidências", "evidencias")
+        )
 
         layout.addStretch()
 
@@ -259,6 +269,8 @@ class JanelaPrincipal(QMainWindow):
         self.valor_caminho.setText(str(self.caminho_selecionado))
         self.valor_tamanho.setText(formatar_tamanho(tamanho))
         self.valor_sha256.setText("Aguardando análise")
+        self.valor_tipo_real.setText("Aguardando análise")
+        self.valor_evidencias.setText("Aguardando análise")
 
         self.estado_principal.setText("Arquivo selecionado.")
         self.instrucao.setText(
@@ -281,6 +293,8 @@ class JanelaPrincipal(QMainWindow):
         self.botao_observar.setEnabled(False)
         self.progresso.setValue(0)
         self.valor_sha256.setText("Calculando...")
+        self.valor_tipo_real.setText("Identificando...")
+        self.valor_evidencias.setText("Coletando...")
 
         self.estado_principal.setText("Observação em andamento.")
         self.instrucao.setText(
@@ -291,7 +305,9 @@ class JanelaPrincipal(QMainWindow):
 
         self._definir_status("Observando", "statusAnalisando")
 
-        self.trabalhador = TrabalhadorHash(self.caminho_selecionado)
+        self.trabalhador = TrabalhadorAnalise(
+            self.caminho_selecionado
+        )
         self.trabalhador.progresso.connect(self.progresso.setValue)
         self.trabalhador.concluido.connect(self._analise_concluida)
         self.trabalhador.falhou.connect(self._analise_falhou)
@@ -300,16 +316,40 @@ class JanelaPrincipal(QMainWindow):
         )
         self.trabalhador.start()
 
-    def _analise_concluida(self, hash_sha256: str) -> None:
-        self.valor_sha256.setText(hash_sha256)
+    def _analise_concluida(
+        self,
+        resultado: ResultadoAnalise,
+    ) -> None:
+        arquivo = resultado.arquivo
+
+        self.valor_sha256.setText(
+            arquivo.sha256 or "Não calculado"
+        )
+        self.valor_tipo_real.setText(
+            arquivo.tipo_real or "DESCONHECIDO"
+        )
+
+        if resultado.possui_evidencias:
+            texto_evidencias = "\n".join(
+                f"[{evidencia.severidade}] "
+                f"{evidencia.codigo}: "
+                f"{evidencia.descricao}"
+                for evidencia in resultado.evidencias
+            )
+        else:
+            texto_evidencias = "Nenhuma evidência encontrada."
+
+        self.valor_evidencias.setText(texto_evidencias)
         self.progresso.setValue(100)
 
         self.estado_principal.setText("Observação concluída.")
         self.instrucao.setText(
-            "O SHA-256 foi calculado. Ele identifica o conteúdo "
-            "exato observado neste momento."
+            "A identidade criptográfica, o tipo real e as "
+            "evidências do arquivo foram reunidos."
         )
-        self.fala_caracara.setText(f"“{mensagem_concluida()}”")
+        self.fala_caracara.setText(
+            f"“{mensagem_concluida()}”"
+        )
 
         self.botao_selecionar.setEnabled(True)
         self.botao_observar.setEnabled(True)
@@ -317,9 +357,12 @@ class JanelaPrincipal(QMainWindow):
 
         self.trabalhador = None
 
+
     def _analise_falhou(self, descricao: str) -> None:
         self.progresso.setValue(0)
         self.valor_sha256.setText("Não calculado")
+        self.valor_tipo_real.setText("Não identificado")
+        self.valor_evidencias.setText("Não coletadas")
 
         self.estado_principal.setText("A observação foi interrompida.")
         self.instrucao.setText(descricao)
