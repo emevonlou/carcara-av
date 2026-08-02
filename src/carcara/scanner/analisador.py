@@ -42,18 +42,48 @@ class AnalisadorDeArquivo:
 
         self._validar(caminho_arquivo)
 
+        estado_inicial = caminho_arquivo.stat()
+
+        hash_sha256 = calcular_sha256(
+            caminho_arquivo,
+            progresso=progresso,
+        )
+
+        tipo_real = self.identificador.identificar(
+            caminho_arquivo
+        )
+
+        estado_final = caminho_arquivo.stat()
+
+        assinatura_inicial = (
+            estado_inicial.st_dev,
+            estado_inicial.st_ino,
+            estado_inicial.st_size,
+            estado_inicial.st_mtime_ns,
+            estado_inicial.st_ctime_ns,
+        )
+
+        assinatura_final = (
+            estado_final.st_dev,
+            estado_final.st_ino,
+            estado_final.st_size,
+            estado_final.st_mtime_ns,
+            estado_final.st_ctime_ns,
+        )
+
+        if assinatura_inicial != assinatura_final:
+            raise ErroDeAnalise(
+                "O arquivo foi alterado durante a análise: "
+                f"{caminho_arquivo}"
+            )
+
         return Arquivo(
             caminho=caminho_arquivo,
             nome=caminho_arquivo.name,
             extensao=caminho_arquivo.suffix.lower(),
-            tamanho=caminho_arquivo.stat().st_size,
-            sha256=calcular_sha256(
-                caminho_arquivo,
-                progresso=progresso,
-            ),
-            tipo_real=self.identificador.identificar(
-                caminho_arquivo
-            ),
+            tamanho=estado_inicial.st_size,
+            sha256=hash_sha256,
+            tipo_real=tipo_real,
         )
 
     def _validar(self, caminho: Path) -> None:

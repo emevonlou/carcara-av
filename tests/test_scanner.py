@@ -4,6 +4,7 @@ import hashlib
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from carcara.scanner import AnalisadorDeArquivo, ErroDeAnalise
 
@@ -56,6 +57,44 @@ class TestAnalisadorDeArquivo(unittest.TestCase):
         with tempfile.TemporaryDirectory() as diretorio:
             with self.assertRaises(ErroDeAnalise):
                 self.analisador.analisar(Path(diretorio))
+
+    def test_recusa_resultado_se_arquivo_mudar_durante_analise(
+        self,
+    ) -> None:
+        conteudo_original = b"\x7fELFconteudo-original"
+        conteudo_alterado = b"MZconteudo-alterado!!"
+
+        self.assertEqual(
+            len(conteudo_original),
+            len(conteudo_alterado),
+        )
+
+        with tempfile.TemporaryDirectory() as diretorio:
+            caminho = Path(diretorio) / "amostra.bin"
+            caminho.write_bytes(conteudo_original)
+
+            def calcular_e_alterar(
+                caminho_alvo: str | Path,
+                progresso=None,
+            ) -> str:
+                caminho_real = Path(caminho_alvo)
+
+                conteudo = caminho_real.read_bytes()
+                resultado = hashlib.sha256(conteudo).hexdigest()
+
+                caminho_real.write_bytes(conteudo_alterado)
+
+                if progresso is not None:
+                    progresso(100)
+
+                return resultado
+
+            with patch(
+                "carcara.scanner.analisador.calcular_sha256",
+                side_effect=calcular_e_alterar,
+            ):
+                with self.assertRaises(ErroDeAnalise):
+                    self.analisador.analisar(caminho)
 
 
 if __name__ == "__main__":
