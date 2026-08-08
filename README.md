@@ -55,7 +55,7 @@ Este projeto representa uma jornada de aprendizado em diversas áreas da computa
 - Análise de Malware
 - Desenvolvimento Seguro
 
-Cada módulo desenvolvido será também um passo importante na evolução técnica da autora deste projeto.
+Cada módulo desenvolvido será também um passo importante na evolução técnica.
 
 ---
 
