@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class Arquivo:
     caminho: Path
     nome: str
